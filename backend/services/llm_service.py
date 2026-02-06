@@ -15,6 +15,8 @@ class LLMClient(ABC):
         """Generate embeddings for the given text."""
         pass
 
+import os
+
 class OllamaClient(LLMClient):
     def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama3", embed_model: str = "llama3"):
         self.base_url = base_url
@@ -24,7 +26,8 @@ class OllamaClient(LLMClient):
 
     async def generate_stream(self, prompt: str, context: Optional[List[str]] = None) -> AsyncGenerator[str, None]:
         url = f"{self.base_url}/api/generate"
-        system_prompt = "You are AuraMind Assistant, a secure internal knowledge AI. Answer based ONLY on the PROVIDED CONTEXT. Chunks are prefixed with 'Source: filename'. Always specify which document you are citing by its filename. If information is missing from the context, state that it is not found in the uploaded documents."
+        default_prompt = "You are AuraMind Assistant, a secure internal knowledge AI. Answer based ONLY on the PROVIDED CONTEXT. Chunks are prefixed with 'Source: filename'. Always specify which document you are citing by its filename. If information is missing from the context, state that it is not found in the uploaded documents."
+        system_prompt = os.getenv("SYSTEM_PROMPT", default_prompt)
         
         full_prompt = prompt
         if context:
@@ -54,6 +57,10 @@ class OllamaClient(LLMClient):
                         continue
 
     async def get_embeddings(self, text: str) -> List[float]:
+        """
+        [DEPRECATED] Generate embeddings using Ollama.
+        Project now uses local SentenceTransformers via EmbeddingService.
+        """
         url = f"{self.base_url}/api/embeddings"
         payload = {
             "model": self.embed_model,
@@ -65,5 +72,5 @@ class OllamaClient(LLMClient):
                 response.raise_for_status()
                 return response.json().get("embedding", [])
             except Exception as e:
-                print(f"Error getting embeddings: {e}")
+                print(f"Error getting legacy embeddings: {e}")
                 return []

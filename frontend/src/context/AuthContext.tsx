@@ -2,7 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/api';
+import { jwtDecode } from 'jwt-decode';
+
+interface JWTPayload {
+    sub: string;
+    role: 'admin' | 'user';
+}
 
 interface User {
     id: number;
@@ -27,15 +32,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            // Decode JWT or fetch user details (simplifying here)
             try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
+                const payload = jwtDecode<JWTPayload>(token);
                 setUser({
-                    id: 0, // Placeholder
+                    id: 0,
                     email: payload.sub,
                     role: payload.role
                 });
             } catch (e) {
+                console.error('Invalid token', e);
                 localStorage.removeItem('token');
             }
         }
@@ -44,13 +49,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const login = (token: string) => {
         localStorage.setItem('token', token);
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-            id: 0,
-            email: payload.sub,
-            role: payload.role
-        });
-        router.push('/dashboard');
+        try {
+            const payload = jwtDecode<JWTPayload>(token);
+            setUser({
+                id: 0,
+                email: payload.sub,
+                role: payload.role
+            });
+            router.push('/dashboard');
+        } catch (e) {
+            console.error('Login failed: Invalid token');
+        }
     };
 
     const logout = () => {

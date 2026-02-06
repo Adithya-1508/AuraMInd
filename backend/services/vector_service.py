@@ -1,3 +1,4 @@
+from fastapi.concurrency import run_in_threadpool
 import chromadb
 from chromadb.config import Settings
 from typing import List, Dict, Any, Optional
@@ -6,14 +7,17 @@ import uuid
 class VectorService:
     def __init__(self, persist_directory: str = "./chroma_db"):
         self.client = chromadb.PersistentClient(path=persist_directory)
-        # Switch to a new collection version for 384-dim embeddings
+        # Using document_chunks_v2 for 384-dim local embeddings
         self.collection = self.client.get_or_create_collection(name="document_chunks_v2")
         from services.embedding_service import EmbeddingService
+        # EmbeddingService is now a Singleton
         self.embedding_service = EmbeddingService()
 
-    def add_chunks(self, chunks: List[str], metadatas: List[Dict[str, Any]], embeddings: Optional[List[List[float]]] = None):
+    async def add_chunks(self, chunks: List[str], metadatas: List[Dict[str, Any]], embeddings: Optional[List[List[float]]] = None):
         ids = [str(uuid.uuid4()) for _ in chunks]
-        self.collection.add(
+        # Offload blocking Chroma additions
+        await run_in_threadpool(
+            self.collection.add,
             documents=chunks,
             metadatas=metadatas,
             ids=ids,
@@ -22,11 +26,13 @@ class VectorService:
 
     async def search(self, query: str, n_results: int = 5, query_embeddings: Optional[List[List[float]]] = None) -> List[Dict[str, Any]]:
         if not query_embeddings:
-            # Generate query embedding using the same model as the collection
+            # Generate query embedding synchronously as it's small, or wrap if needed
             emb = self.embedding_service.get_embeddings(query)
             query_embeddings = [emb]
 
-        results = self.collection.query(
+        # Offload blocking Chroma queries
+        results = await run_in_threadpool(
+            self.collection.query,
             query_embeddings=query_embeddings,
             n_results=n_results
         )
@@ -41,10 +47,13 @@ class VectorService:
                 })
         return formatted_results
 
-    def delete_by_document(self, document_id: str):
-        self.collection.delete(where={"document_id": document_id})
+    async def delete_by_document(self, document_id: str):
+        await run_in_threadpool(
+            self.collection.delete,
+            where={"document_id": document_id}
+        )
 
     def reset_collection(self):
         """Clears all data from the collection."""
-        self.client.delete_collection("document_chunks")
-        self.collection = self.client.get_or_create_collection(name="document_chunks")
+        self.client.delete_collection("document_chunks_v2")
+        self.collection = self.client.get_or_create_collection(name="document_chunks_v2")
