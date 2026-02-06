@@ -26,8 +26,8 @@ class VectorService:
 
     async def search(self, query: str, n_results: int = 5, query_embeddings: Optional[List[List[float]]] = None) -> List[Dict[str, Any]]:
         if not query_embeddings:
-            # Generate query embedding synchronously as it's small, or wrap if needed
-            emb = self.embedding_service.get_embeddings(query)
+            # Offload blocking embedding generation to threadpool
+            emb = await run_in_threadpool(self.embedding_service.get_embeddings, query)
             query_embeddings = [emb]
 
         # Offload blocking Chroma queries

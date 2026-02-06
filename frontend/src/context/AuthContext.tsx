@@ -48,9 +48,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = (token: string) => {
-        localStorage.setItem('token', token);
         try {
             const payload = jwtDecode<JWTPayload>(token);
+            // Only persist token if it decodes successfully
+            localStorage.setItem('token', token);
             setUser({
                 id: 0,
                 email: payload.sub,
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             router.push('/dashboard');
         } catch (e) {
             console.error('Login failed: Invalid token');
+            localStorage.removeItem('token');
         }
     };
 
