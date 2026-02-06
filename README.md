@@ -2,7 +2,6 @@
 
 AuraMind is a high-performance Retrieval-Augmented Generation (RAG) platform designed for secure internal documentation analysis. Built with Next.js, FastAPI, and local AI engines, it provides sub-second document retrieval and instant streaming responses.
 
-![AuraMind Logo](./frontend/public/logo.png)
 
 ## 🏗️ Architecture
 
