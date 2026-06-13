@@ -63,7 +63,7 @@ def reindex_all_documents(
             file_path = os.path.join(upload_dir, matching_files[0])
             doc.processed = 0 # Mark as pending
             db.commit()
-            background_tasks.add_task(process_document_task, doc.id, file_path, db)
+            background_tasks.add_task(process_document_task, doc.id, file_path)
             reindexed_count += 1
             
     return {"message": f"Re-indexing started for {reindexed_count} documents."}

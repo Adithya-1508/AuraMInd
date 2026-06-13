@@ -13,11 +13,11 @@ class VectorService:
         # EmbeddingService is now a Singleton
         self.embedding_service = EmbeddingService()
 
-    async def add_chunks(self, chunks: List[str], metadatas: List[Dict[str, Any]], embeddings: Optional[List[List[float]]] = None):
+    def add_chunks(self, chunks: List[str], metadatas: List[Dict[str, Any]], embeddings: Optional[List[List[float]]] = None):
+        # Synchronous on purpose: this runs inside the document-ingestion
+        # background task, which FastAPI already executes in a worker thread.
         ids = [str(uuid.uuid4()) for _ in chunks]
-        # Offload blocking Chroma additions
-        await run_in_threadpool(
-            self.collection.add,
+        self.collection.add(
             documents=chunks,
             metadatas=metadatas,
             ids=ids,
@@ -47,11 +47,9 @@ class VectorService:
                 })
         return formatted_results
 
-    async def delete_by_document(self, document_id: str):
-        await run_in_threadpool(
-            self.collection.delete,
-            where={"document_id": document_id}
-        )
+    def delete_by_document(self, document_id: str):
+        # Synchronous: called from sync request handlers (run in a worker thread).
+        self.collection.delete(where={"document_id": document_id})
 
     def reset_collection(self):
         """Clears all data from the collection."""

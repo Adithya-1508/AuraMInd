@@ -3,14 +3,14 @@ from typing import List, Optional
 import json
 from sqlalchemy.orm import Session
 from db.session import get_db
-from services.llm_service import OllamaClient
+from services.llm_service import get_llm_client
 from services.vector_service import VectorService
 from api.documents import get_current_user
 from models.database import User, Conversation, Message as DBMessage
 from pydantic import BaseModel
 
 router = APIRouter()
-llm_client = OllamaClient()
+llm_client = get_llm_client()
 vector_service = VectorService()
 
 class ChatRequest(BaseModel):
@@ -25,6 +25,16 @@ async def query_rag(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    # Guard against IDOR: if a conversation is targeted, it must belong to the
+    # current user before we stream into / persist messages on it.
+    if request.conversation_id is not None:
+        conv = db.query(Conversation).filter(
+            Conversation.id == request.conversation_id,
+            Conversation.user_id == current_user.id,
+        ).first()
+        if not conv:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+
     async def event_generator():
         # 1. Retrieve relevant chunks
         results = await vector_service.search(request.query, n_results=5)

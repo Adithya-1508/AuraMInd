@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
-from db.session import get_db
+from db.session import get_db, SessionLocal
 from models.database import Document, User
 from services.document_processor import DocumentProcessor
 from services.vector_service import VectorService
@@ -21,36 +21,43 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     user = db.query(User).filter(User.email == payload["sub"]).first()
     return user
 
-def process_document_task(doc_id: int, file_path: str, db_session: Session):
+def process_document_task(doc_id: int, file_path: str):
+    # Open a dedicated session: the request-scoped session is closed once the
+    # response is sent, and SQLAlchemy sessions are not safe to share with the
+    # worker thread this background task runs in.
+    db_session = SessionLocal()
     try:
         pages = doc_processor.extract_text(file_path)
         chunks = doc_processor.chunk_text(pages)
-        
+
         doc = db_session.query(Document).filter(Document.id == doc_id).first()
         filename = doc.filename if doc else "Unknown"
-        
+
         # Prepend filename to each chunk for better LLM context recognition
         vector_chunks = [f"Source: {filename}\nContent: {c['content']}" for c in chunks]
         metadatas = [{"document_id": str(doc_id), "pages": str(c['pages']), "filename": filename} for c in chunks]
-        
+
         # Use local EmbeddingService for near-instant indexing
         from services.embedding_service import EmbeddingService
         embedding_service = EmbeddingService()
-        
+
         embeddings = embedding_service.get_batch_embeddings(vector_chunks)
-        
+
         vector_service.add_chunks(vector_chunks, metadatas, embeddings=embeddings)
-        
+
         # Mark as processed
         if doc:
             doc.processed = 1
             db_session.commit()
     except Exception as e:
         print(f"Error processing document: {e}")
+        db_session.rollback()
         doc = db_session.query(Document).filter(Document.id == doc_id).first()
         if doc:
             doc.processed = -1
             db_session.commit()
+    finally:
+        db_session.close()
 
 @router.post("/upload")
 async def upload_document(
@@ -78,7 +85,7 @@ async def upload_document(
     db.commit()
     db.refresh(new_doc)
     
-    background_tasks.add_task(process_document_task, new_doc.id, file_path, db)
+    background_tasks.add_task(process_document_task, new_doc.id, file_path)
     
     return {"message": "File uploaded successfully, processing started", "document_id": new_doc.id}
 
