@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from db.session import get_db
 from models.database import User, UserRole
 from core.security import verify_password, get_password_hash, create_access_token
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
@@ -14,12 +14,18 @@ class UserCreate(BaseModel):
     password: str
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     email: str
     role: str
 
-    class Config:
-        from_attributes = True
+    @field_validator("role", mode="before")
+    @classmethod
+    def _role_to_value(cls, v):
+        # User.role is a UserRole enum; serialize it to its string value
+        # ("admin" / "user") rather than rejecting it or emitting "UserRole.ADMIN".
+        return v.value if isinstance(v, UserRole) else v
 
 @router.post("/register", response_model=UserResponse)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):

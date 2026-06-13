@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from typing import List
 from sqlalchemy.orm import Session
 from db.session import get_db
 from models.database import User, UserRole, Document
 from api.documents import get_current_user
+from api.auth import UserResponse
 
 router = APIRouter()
 
@@ -11,7 +13,7 @@ def require_admin(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Admin access required")
     return current_user
 
-@router.get("/users")
+@router.get("/users", response_model=List[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin)
