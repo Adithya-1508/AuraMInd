@@ -1,56 +1,101 @@
-<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background Gradient -->
-  <rect width="800" height="600" rx="40" fill="#020617"/>
-  <rect width="800" height="600" rx="40" fill="url(#bg_gradient)" fill-opacity="0.2"/>
-  
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="650" viewBox="0 0 940 650" role="img" font-family="'JetBrains Mono','SFMono-Regular',Menlo,Consolas,monospace">
+  <title>AuraMind architecture</title>
+  <desc>Local-first RAG: a Next.js frontend and FastAPI backend embed documents on-device with SentenceTransformers into ChromaDB; only retrieved chunks are sent across a trust boundary to NVIDIA NIM (MiniMax M2.7) for streamed generation. SQLite stores history.</desc>
+
   <defs>
-    <linearGradient id="primary_gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#06b6d4" />
-    </linearGradient>
-    <radialGradient id="bg_gradient" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-      <stop offset="0%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#020617" stop-opacity="0" />
-    </radialGradient>
-    <filter id="glass" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="5" />
-    </filter>
+    <marker id="ag" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3DF07A"/></marker>
+    <marker id="aa" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#FFB000"/></marker>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#5E7A64"/></marker>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <pattern id="scan" width="3" height="3" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="3" y2="0" stroke="#0F1A0F" stroke-width="1"/></pattern>
   </defs>
 
-  <!-- Connection Lines -->
-  <path d="M160 300 H260" stroke="#1e293b" stroke-width="2" stroke-dasharray="8 4"/>
-  <path d="M420 300 H520" stroke="#1e293b" stroke-width="2" stroke-dasharray="8 4"/>
-  <path d="M520 180 Q480 180 480 240" stroke="#1e293b" stroke-width="2" stroke-dasharray="4 2" fill="none"/>
-  <path d="M520 420 Q480 420 480 360" stroke="#1e293b" stroke-width="2" stroke-dasharray="4 2" fill="none"/>
+  <rect x="0" y="0" width="940" height="650" fill="#0A0F0A"/>
+  <rect x="0" y="0" width="940" height="650" fill="url(#scan)" opacity="0.6"/>
 
-  <!-- User Node -->
-  <rect x="40" y="260" width="120" height="80" rx="20" fill="#0f172a" stroke="#ffffff1a"/>
-  <text x="100" y="305" font-family="sans-serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">USER</text>
+  <!-- title bar -->
+  <circle cx="26" cy="28" r="5" fill="#FF5F56"/>
+  <circle cx="44" cy="28" r="5" fill="#FFB000"/>
+  <circle cx="62" cy="28" r="5" fill="#3DF07A"/>
+  <text x="84" y="32" fill="#5E7A64" font-size="12">auramind // architecture.svg</text>
+  <line x1="16" y1="46" x2="924" y2="46" stroke="#1C2A1E" stroke-width="1"/>
 
-  <!-- Frontend Node -->
-  <rect x="260" y="240" width="160" height="120" rx="24" fill="#6366f11a" stroke="url(#primary_gradient)" stroke-width="1.5"/>
-  <text x="340" y="295" font-family="sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">FRONTEND</text>
-  <text x="340" y="315" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">Next.js 16 • Tailwind v4</text>
+  <!-- trust boundary -->
+  <rect x="18" y="58" width="604" height="556" rx="10" fill="none" stroke="#2A4030" stroke-width="1" stroke-dasharray="5 6"/>
+  <text x="34" y="80" fill="#5E7A64" font-size="11" font-weight="700">your machine // local</text>
 
-  <!-- API Node -->
-  <rect x="520" y="240" width="160" height="120" rx="24" fill="#06b6d41a" stroke="url(#primary_gradient)" stroke-width="1.5"/>
-  <text x="600" y="295" font-family="sans-serif" font-size="16" font-weight="bold" fill="white" text-anchor="middle">BACKEND</text>
-  <text x="600" y="315" font-family="sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">FastAPI • JWT • SSE</text>
+  <!-- frontend -->
+  <rect x="56" y="96" width="512" height="60" rx="6" fill="#0E140E" stroke="#1C2A1E"/>
+  <text x="74" y="124" fill="#3DF07A" font-size="14" font-weight="700" filter="url(#glow)">Next.js frontend</text>
+  <text x="74" y="144" fill="#5E7A64" font-size="11">chat · documents · admin · JWT login (browser)</text>
 
-  <!-- AI Engine Node -->
-  <rect x="520" y="80" width="220" height="100" rx="20" fill="#0f172a" stroke="#ffffff1a"/>
-  <circle cx="550" cy="130" r="15" fill="url(#primary_gradient)" fill-opacity="0.2" stroke="url(#primary_gradient)"/>
-  <text x="575" y="125" font-family="sans-serif" font-size="12" font-weight="bold" fill="white">AI ENGINE</text>
-  <text x="575" y="140" font-family="sans-serif" font-size="10" fill="#64748b">Ollama / Llama3</text>
-  <text x="575" y="152" font-family="sans-serif" font-size="10" fill="#64748b">SentenceTransformers</text>
+  <line x1="312" y1="156" x2="312" y2="194" stroke="#5E7A64" stroke-width="1" marker-end="url(#ar)"/>
+  <text x="320" y="180" fill="#C6ECCD" font-size="10">JWT · SSE</text>
 
-  <!-- Storage Node -->
-  <rect x="520" y="420" width="220" height="100" rx="20" fill="#0f172a" stroke="#ffffff1a"/>
-  <path d="M540 450 H560" stroke="url(#primary_gradient)" stroke-width="2"/>
-  <text x="575" y="465" font-family="sans-serif" font-size="12" font-weight="bold" fill="white">PERSISTENCE</text>
-  <text x="575" y="480" font-family="sans-serif" font-size="10" fill="#64748b">ChromaDB (Vector)</text>
-  <text x="575" y="492" font-family="sans-serif" font-size="10" fill="#64748b">SQLite (Chat History)</text>
+  <!-- backend (hub) -->
+  <rect x="56" y="196" width="512" height="86" rx="6" fill="#0E140E" stroke="#1C2A1E"/>
+  <text x="74" y="224" fill="#3DF07A" font-size="14" font-weight="700" filter="url(#glow)">FastAPI backend</text>
+  <text x="74" y="245" fill="#C6ECCD" font-size="11">routers: /auth  /chat  /documents  /history  /admin</text>
+  <text x="74" y="264" fill="#5E7A64" font-size="11">orchestrates: retrieve -&gt; generate · SQLAlchemy</text>
 
-  <!-- Title -->
-  <text x="400" y="50" font-family="sans-serif" font-size="24" font-weight="900" fill="white" text-anchor="middle" letter-spacing="2">AURAMIND RAG ARCHITECTURE</text>
+  <!-- ingest arrow (amber) backend -> docproc -->
+  <line x1="140" y1="282" x2="140" y2="360" stroke="#FFB000" stroke-width="1" marker-end="url(#aa)"/>
+  <text x="100" y="322" fill="#FFB000" font-size="10">ingest</text>
+
+  <!-- query / chunks arrows (green) between backend and core -->
+  <line x1="300" y1="282" x2="300" y2="334" stroke="#3DF07A" stroke-width="1" marker-end="url(#ag)"/>
+  <text x="296" y="302" fill="#3DF07A" font-size="10" text-anchor="end">query</text>
+  <line x1="322" y1="334" x2="322" y2="282" stroke="#3DF07A" stroke-width="1" marker-end="url(#ag)"/>
+  <text x="328" y="302" fill="#3DF07A" font-size="10">chunks</text>
+
+  <!-- persist arrow (gray) backend -> sqlite -->
+  <line x1="484" y1="282" x2="484" y2="330" stroke="#5E7A64" stroke-width="1" marker-end="url(#ar)"/>
+  <text x="492" y="312" fill="#5E7A64" font-size="10">persist</text>
+
+  <!-- RAG core panel -->
+  <rect x="56" y="336" width="300" height="228" rx="8" fill="none" stroke="#1C2A1E"/>
+  <text x="240" y="352" fill="#5E7A64" font-size="11" font-weight="700">local RAG core</text>
+
+  <rect x="72" y="360" width="268" height="52" rx="5" fill="#0E140E" stroke="#1C2A1E"/>
+  <text x="86" y="381" fill="#C6ECCD" font-size="12">DocumentProcessor · PyMuPDF</text>
+  <text x="86" y="399" fill="#5E7A64" font-size="10">extract + chunk PDF text</text>
+
+  <line x1="206" y1="412" x2="206" y2="429" stroke="#FFB000" stroke-width="1" marker-end="url(#aa)"/>
+
+  <rect x="72" y="430" width="268" height="52" rx="5" fill="#0E140E" stroke="#1C2A1E"/>
+  <text x="86" y="451" fill="#C6ECCD" font-size="12">EmbeddingService · MiniLM-L6</text>
+  <text x="86" y="469" fill="#5E7A64" font-size="10">local · 384-dim vectors</text>
+
+  <line x1="206" y1="482" x2="206" y2="499" stroke="#FFB000" stroke-width="1" marker-end="url(#aa)"/>
+
+  <rect x="72" y="500" width="268" height="52" rx="5" fill="#0E140E" stroke="#1C2A1E"/>
+  <text x="86" y="521" fill="#C6ECCD" font-size="12">ChromaDB · vector store</text>
+  <text x="86" y="539" fill="#5E7A64" font-size="10">similarity search · top-k</text>
+
+  <!-- SQLite -->
+  <rect x="400" y="332" width="168" height="64" rx="6" fill="#0E140E" stroke="#1C2A1E"/>
+  <text x="416" y="360" fill="#C6ECCD" font-size="12">SQLite</text>
+  <text x="416" y="379" fill="#5E7A64" font-size="10">users · convos · messages</text>
+
+  <!-- NVIDIA NIM (outside boundary) -->
+  <rect x="700" y="200" width="210" height="120" rx="8" fill="#0E140E" stroke="#21B257" stroke-width="1.5"/>
+  <text x="718" y="232" fill="#3DF07A" font-size="15" font-weight="700" filter="url(#glow)">NVIDIA NIM</text>
+  <text x="718" y="256" fill="#FFB000" font-size="12">MiniMax M2.7</text>
+  <text x="718" y="275" fill="#5E7A64" font-size="10">swappable · OpenAI-compatible</text>
+  <text x="718" y="302" fill="#5E7A64" font-size="10">[ hosted · external ]</text>
+
+  <!-- backend <-> nvidia (crosses boundary) -->
+  <line x1="568" y1="228" x2="698" y2="248" stroke="#3DF07A" stroke-width="1" marker-end="url(#ag)"/>
+  <text x="592" y="222" fill="#3DF07A" font-size="10">context -&gt;</text>
+  <line x1="698" y1="288" x2="568" y2="266" stroke="#3DF07A" stroke-width="1" marker-end="url(#ag)"/>
+  <text x="588" y="306" fill="#3DF07A" font-size="10">&lt;- streamed tokens</text>
+
+  <!-- legend -->
+  <line x1="40" y1="630" x2="64" y2="630" stroke="#3DF07A" stroke-width="2"/>
+  <text x="72" y="634" fill="#C6ECCD" font-size="10">query · answer</text>
+  <line x1="196" y1="630" x2="220" y2="630" stroke="#FFB000" stroke-width="2"/>
+  <text x="228" y="634" fill="#C6ECCD" font-size="10">document ingestion</text>
+  <line x1="380" y1="630" x2="404" y2="630" stroke="#5E7A64" stroke-width="2"/>
+  <text x="412" y="634" fill="#C6ECCD" font-size="10">persistence</text>
+  <text x="520" y="634" fill="#5E7A64" font-size="10">dashed = your machine · only retrieved snippets cross to NVIDIA</text>
 </svg>
